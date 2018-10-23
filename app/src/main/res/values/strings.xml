@@ -6,7 +6,26 @@
     <string name="login_label_contrasena">Contraseña</string>
     <string name="boton_login">ENTRAR</string>
     <string name="boton_register">REGISTRARSE</string>
-    <string name="login_error_login">Nombre de Usuario o Contraseña erronea</string>
+    <string name="login_error_login">Nombre de Usuario o Contraseña es erronea.</string>
+    <string name="login_vacio_login">Nombre de Usuario o Contraseña está vacío.</string>
+
+    <!-- RegisterActivity -->
+    <string name="register_label_firstName">Nombre</string>
+    <string name="register_label_lastName">Apellidos</string>
+    <string name="register_label_userName">Nombre de usuario</string>
+    <string name="register_label_email">Email</string>
+    <string name="register_label_password">Contraseña</string>
+    <string name="register_label_confirm_password">Confirmar contraseña</string>
+    <string name="register_label_phoneNumber">Teléfono</string>
+    <string name="register_label_alias">Alias</string>
+    <string name="register_button_send">Enviar</string>
+    <string name="register_error_match">Las contraseñas no coinciden</string>
+    <string name="register_error_fill">Debes rellenar todos los campos</string>
+    <string name="register_error_alphabetic">El campo solo acepta caracteres alfabéticos</string>
+    <string name="register_error_alphanumeric">El campo solo acepta caracteres alfanumericos</string>
+    <string name="register_error_max15">El campo solo acepta 15 caracteres máximos</string>
+    <string name="register_error_max9">El campo solo acepta 9 caracteres máximos</string>
+
 
 
 </resources>

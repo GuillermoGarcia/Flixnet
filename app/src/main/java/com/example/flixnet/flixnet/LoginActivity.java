@@ -11,6 +11,9 @@ import android.widget.EditText;
 
 public class LoginActivity extends AppCompatActivity {
 
+    private final String DUMMY_LOGIN = "Bruce";
+    private final String DUMMY_PASSWORD = "iambatman";
+
     private Button btnLogin, btnRegister;
     private EditText txtUser, txtPass;
 
@@ -46,10 +49,14 @@ public class LoginActivity extends AppCompatActivity {
 
                 // Comprobamos que hay datos
 
-                if ((!usr.isEmpty()) || (!pas.isEmpty())){
-
-                } else {
+                if (usr.isEmpty() || pas.isEmpty()){
+                    Snackbar.make(v, R.string.login_vacio_login, Snackbar.LENGTH_LONG).show();
+                } else if (!usr.equals(DUMMY_LOGIN) || !pas.equals(DUMMY_PASSWORD)) {
                     Snackbar.make(v, R.string.login_error_login, Snackbar.LENGTH_LONG).show();
+                } else {
+                    Intent intent = new Intent(LoginActivity.this , ListActivity.class);
+                    intent.putExtra("usuario", usr);
+                    startActivity(intent);
                 }
 
                 /* Intent intent = new Intent(LoginActivity.this, AccessActivity.class);
