@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Flixnet</string>
+
+    <!-- Login Activity -->
+    <string name="login_label_usuario">Nombre de Usuario</string>
+    <string name="login_label_contrasena">Contraseña</string>
+    <string name="boton_login">ENTRAR</string>
+    <string name="boton_register">REGISTRARSE</string>
+    <string name="login_error_login">Nombre de Usuario o Contraseña erronea</string>
+
+
+</resources>
