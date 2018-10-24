@@ -9,12 +9,15 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+
+import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -64,23 +67,30 @@ public class LoginActivity extends AppCompatActivity {
                 if (usr.isEmpty() || pas.isEmpty()){
                     Snackbar.make(v, R.string.login_vacio_login, Snackbar.LENGTH_LONG).show();
                 } else {
-                    String ruta = "http://localhost/api/api.php";
-                    StringRequest jsqnreq = new StringRequest(Request.Method.POST, ruta,
-                                                new Response.Listener<String>() {
-                                                    @Override
-                                                    public void onResponse(String response) {
+                    String ruta = "http:///api/api.php";
+                    StringRequest jsonreq =
+                      new StringRequest(Request.Method.POST, ruta,
+                        new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
 
-                                                    }
-                                                },
-                                                new Response.ErrorListener() {
-                                                    @Override
-                                                    public void onErrorResponse(VolleyError error) {
+                            }
+                        },
+                        new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
 
-                                                    }
-                                                }
-                                            ){
+                            }
+                        }
+                      ){
+                        @Override
+                        protected Map<String, String> getParams() throws AuthFailureError {
+                            // Map<String, String> param =
+                            return super.getParams();
+                        }
 
-                                            };
+                      };
+                    queue.add(jsonreq);
 
                     if (!usr.equals(DUMMY_LOGIN) || !pas.equals(DUMMY_PASSWORD)) {
                         Snackbar.make(v, R.string.login_error_login, Snackbar.LENGTH_LONG).show();
