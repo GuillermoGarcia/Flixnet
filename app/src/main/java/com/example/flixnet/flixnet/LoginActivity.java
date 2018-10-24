@@ -64,7 +64,7 @@ public class LoginActivity extends AppCompatActivity {
                 if (usr.isEmpty() || pas.isEmpty()){
                     Snackbar.make(v, R.string.login_vacio_login, Snackbar.LENGTH_LONG).show();
                 } else {
-                    String ruta = "http://localhost/api/api.php"
+                    String ruta = "http://localhost/api/api.php";
                     StringRequest jsqnreq = new StringRequest(Request.Method.POST, ruta,
                                                 new Response.Listener<String>() {
                                                     @Override
