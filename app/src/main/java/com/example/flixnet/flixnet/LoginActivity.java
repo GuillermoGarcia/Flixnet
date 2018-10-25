@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -17,6 +18,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
@@ -57,8 +59,9 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String usr = txtUser.getText().toString().trim();
-                String pas = txtPass.getText().toString().trim();
+                final String usr = txtUser.getText().toString().trim();
+                final String pas = txtPass.getText().toString().trim();
+                final String API_KEY = "";
 
                 Log.d("FLIXNET_LOGIN", usr + " - " + pas);
 
@@ -67,31 +70,69 @@ public class LoginActivity extends AppCompatActivity {
                 if (usr.isEmpty() || pas.isEmpty()){
                     Snackbar.make(v, R.string.login_vacio_login, Snackbar.LENGTH_LONG).show();
                 } else {
-                    String ruta = "http:///api/api.php";
-                    StringRequest jsonreq =
-                      new StringRequest(Request.Method.POST, ruta,
-                        new Response.Listener<String>() {
-                            @Override
-                            public void onResponse(String response) {
+                    // Definimos la URL de acceso a la API. Recuerda que debes utilizar la IP de tu
+                    // máquina (no vale 127.0.0.1 o localhost)
+                    String ruta = "" ;
 
-                            }
-                        },
-                        new Response.ErrorListener() {
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
+                    // Creamos una solicitud de acceso a la URL anterior.
+                    // Necesitamos especificar: método (GET|POST), ruta y dos listeners.
+                    StringRequest jsonreq = new StringRequest(
+                            Request.Method.POST,
+                            ruta,
+                            new Response.Listener<String>() {
+                                @Override
+                                public void onResponse(String response) {
 
+                                    // Si la solicitud se ha realizado con éxito, procesamos de manera apropiada,
+                                    // la información obtenida en RESPONSE.
+                                    Toast.makeText(LoginActivity.this,response, Toast.LENGTH_LONG).show();
+
+                                }
+                            },
+
+                            new Response.ErrorListener() {
+                                @Override
+                                public void onErrorResponse(VolleyError error) {
+
+                                    // Se la solicitud no se ha completado con éxito, procesamos el error de la
+                                    // manera que estimemos oportuna, según la información obtenida a través del
+                                    // objeto ERROR de tipo VOLLEYERROR.
+                                    Log.e("FLIXNET_LOGIN", error.getMessage()) ;
+                                }
                             }
-                        }
-                      ){
+                    )
+                    {
+
+                        // El método getParams de la clase Request<T>, nos permite definir aquellos parámetros
+                        // que necesitemos enviar a través de una petición POST.
                         @Override
                         protected Map<String, String> getParams() throws AuthFailureError {
-                            // Map<String, String> param =
-                            return super.getParams();
+
+                            Map<String, String> param = new HashMap<String,String>() ;
+                            param.put("token",API_KEY) ;
+                            param.put("codigo","1") ;
+                            param.put("usr",usr) ;
+                            param.put("pwd",pas) ;
+
+                            return param ;
                         }
 
-                      };
-                    queue.add(jsonreq);
+                        // El método getHeaders de la clase Request<T>, nos permite modificar la cabecera del
+                        // mensaje HTTP que enviamos al servidor. En este caso, nos bastará con establecer el
+                        // valor del parámetro Content-Type, indicando que los parámetros enviados deberán
+                        // ser codificados en tuplas clave, valor.
+                        @Override
+                        public Map<String, String> getHeaders() throws AuthFailureError {
 
+                            Map<String, String> param = new HashMap<String,String>() ;
+                            param.put("Content-Type","application/x-www-form-urlencoded") ;
+
+                            return param ;
+                        }
+                    } ;
+
+                    // Finalmente, añadimos la petición a la cola de Volley.
+                    queue.add(jsonreq) ;
                     if (!usr.equals(DUMMY_LOGIN) || !pas.equals(DUMMY_PASSWORD)) {
                         Snackbar.make(v, R.string.login_error_login, Snackbar.LENGTH_LONG).show();
                     } else {
