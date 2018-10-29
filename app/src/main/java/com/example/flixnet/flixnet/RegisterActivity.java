@@ -1,6 +1,7 @@
 package com.example.flixnet.flixnet;
 
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -12,11 +13,20 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.FirebaseDatabase;
+
 public class RegisterActivity extends AppCompatActivity {
 
 
     private Button btnSignUp;
     private EditText nom, ape, usu, ali, tel, ema, pwd1, pwd2;
+
+    private FirebaseAuth mAuth;
+    private FirebaseDatabase db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,18 +126,22 @@ public class RegisterActivity extends AppCompatActivity {
         btnSignUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String usr = usu.getText().toString().trim();
-                String pas = pwd1.getText().toString().trim();
 
-                Log.d("FLIXNET_LOGIN", usr + " - " + pas);
+          //Obtenemos los valores introducidos por el usuario
+          String usuario = ema.getText().toString().trim();
+          String clave = pwd1.getText().toString().trim();
 
-                // Comprobamos que hay datos
+          // Obtenemos una instancia del objeto FirebaseAuth
+          mAuth = FirebaseAuth.getInstance();
+          mAuth.createUserWithEmailAndPassword(usuario, clave)
+               .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                 @Override
+                 public void onComplete(@NonNull Task<AuthResult> task) {
+
+                 }
+               });
 
 
-
-                /* Intent intent = new Intent(LoginActivity.this, AccessActivity.class);
-                intent.putExtras();
-                startActivity(intent); */
             }
         });
 

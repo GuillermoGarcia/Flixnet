@@ -1,15 +1,18 @@
 package com.example.flixnet.flixnet.Modelos;
 
 
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
+
 public class Usuario {
 
-    private int idUsuario;
-    private String nombre;
-    private String apellidos;
-    private String email;
-    private String telefono;
-    private String alias;
-    private String imagen;
+    @Expose @SerializedName("idUsuario") private int idUsuario;
+    @Expose @SerializedName("nombre") private String nombre;
+    @Expose @SerializedName("apellidos") private String apellidos;
+    @Expose @SerializedName("email") private String email;
+    @Expose @SerializedName("telefono") private String telefono;
+    @Expose @SerializedName("alias") private String alias;
+    @Expose @SerializedName("imagen") private String imagen;
 
     public Usuario(){ }
 
