@@ -4,9 +4,11 @@ package com.example.flixnet.flixnet.Modelos;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class Usuario {
+import java.io.Serializable;
 
-    @Expose @SerializedName("idUsuario") private int idUsuario;
+public class Usuario implements Serializable {
+
+    @Expose @SerializedName("idUsuario") private String idUsuario;
     @Expose @SerializedName("nombre") private String nombre;
     @Expose @SerializedName("apellidos") private String apellidos;
     @Expose @SerializedName("email") private String email;
@@ -16,7 +18,7 @@ public class Usuario {
 
     public Usuario(){ }
 
-    public Usuario(int idUsuario, String apellidos, String email, String nombre, String telefono){
+    public Usuario(String idUsuario, String nombre, String apellidos, String email, String telefono){
         this.apellidos = apellidos;
         this.email = email;
         this.idUsuario = idUsuario;

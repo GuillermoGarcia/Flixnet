@@ -1,6 +1,7 @@
 package com.example.flixnet.flixnet;
 
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,9 +20,19 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.flixnet.flixnet.Modelos.Respuesta;
 import com.example.flixnet.flixnet.Modelos.Usuario;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -78,7 +89,7 @@ public class LoginActivity extends AppCompatActivity {
           LoginApi(v, usr, pas, API_KEY);
 
           // Login contra Firebase
-          LoginFirebase(v, usr, pas, API_KEY);
+          LoginFirebase(usr, pas);
 
         }
 
@@ -143,7 +154,7 @@ public class LoginActivity extends AppCompatActivity {
       // El método getParams de la clase Request<T>, nos permite definir aquellos parámetros
       // que necesitemos enviar a través de una petición POST.
       @Override
-      protected Map<String, String> getParams() throws AuthFailureError {
+      protected Map<String, String> getParams() {
 
         Map<String, String> param = new HashMap<String, String>();
         param.put("token",API_KEY);
@@ -159,7 +170,7 @@ public class LoginActivity extends AppCompatActivity {
       // valor del parámetro Content-Type, indicando que los parámetros enviados deberán
       // ser codificados en tuplas clave, valor.
       @Override
-      public Map<String, String> getHeaders() throws AuthFailureError {
+      public Map<String, String> getHeaders() {
 
         Map<String, String> param = new HashMap<String,String>();
         param.put("Content-Type","application/x-www-form-urlencoded");
@@ -180,7 +191,67 @@ public class LoginActivity extends AppCompatActivity {
 
   }
 
-  private void LoginFirebase(View v, final String usr, final String pas, final String API_KEY){
+  private void LoginFirebase(String ema, String pas){
+
+    // Logueamos utilizando Firebase
+
+
+    if (!ema.isEmpty() && !pas.isEmpty()) {
+
+      // Obtenemos instancia de Firebase (Authenticate)
+      final FirebaseAuth mAuth = FirebaseAuth.getInstance();
+
+      // Loguearnos con Firebase utilizando el correo y la contraseña
+      mAuth.signInWithEmailAndPassword(ema, pas)
+           .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+             @Override
+             public void onComplete(@NonNull Task<AuthResult> task) {
+
+               if (task.isSuccessful()) {
+
+                 // Recuperamos la información de la base de datos
+                 // de Firebase
+                 FirebaseDatabase db = FirebaseDatabase.getInstance();
+
+                 // Creamos una referencia al documento USUARIOS
+                 DatabaseReference ref = db.getReference("usuario");
+                 // Obtenemos la información del usuario
+                 ref.child(mAuth.getCurrentUser().getUid())
+                     .addListenerForSingleValueEvent(new ValueEventListener() {
+                       @Override
+                       public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                         if (dataSnapshot.exists()) {
+
+                           // Rescatamos la información devuelta por Firebase
+                           Usuario usuario = dataSnapshot.getValue(Usuario.class);
+
+                           // Creamos la intención
+                           Intent intent = new Intent(LoginActivity.this, ListActivity.class);
+
+                           // Creamos un objeto de tipo Bundle
+                           Bundle bundle = new Bundle();
+                           bundle.putSerializable("usuario", (Serializable) usuario);
+
+                           // Asociamos el Bundle al Intent
+                           intent.putExtras(bundle);
+
+                           // Lanzar la actividad ListActivity
+                           startActivity(intent);
+
+                         }
+                       }
+
+                       @Override
+                       public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                       }
+                 });
+               }
+             }
+      });
+    } else {
+      Toast.makeText(LoginActivity.this, "El usuario y/o la contraseña no pueden estar vacíos", Toast.LENGTH_LONG).show();
+    }
 
   }
 }

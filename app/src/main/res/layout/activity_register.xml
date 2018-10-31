@@ -61,7 +61,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/register_firstName" />
                 ​
-                <EditText
+                <!--<EditText
                     android:id="@+id/register_userName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -75,7 +75,7 @@
                     android:hint="@string/register_label_userName"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/register_lastName" />
+                    app:layout_constraintTop_toBottomOf="@+id/register_lastName" />-->
                 ​
                 <EditText
                     android:id="@+id/register_email"
@@ -91,7 +91,7 @@
                     android:hint="@string/register_label_email"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/register_userName" />
+                    app:layout_constraintTop_toBottomOf="@+id/register_lastName" />
                 ​
                 ​
                 <EditText
