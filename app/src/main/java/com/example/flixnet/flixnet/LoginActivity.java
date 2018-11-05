@@ -230,7 +230,7 @@ public class LoginActivity extends AppCompatActivity {
 
                            // Creamos un objeto de tipo Bundle
                            Bundle bundle = new Bundle();
-                           bundle.putSerializable("usuario", (Serializable) usuario);
+                           bundle.putSerializable("usuario", usuario);
 
                            // Asociamos el Bundle al Intent
                            intent.putExtras(bundle);
