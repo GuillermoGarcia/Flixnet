@@ -1,5 +1,8 @@
 package com.example.flixnet.flixnet;
 
+import android.database.sqlite.SQLiteDatabase;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,8 +16,12 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.flixnet.flixnet.Modelos.Usuario;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -45,6 +52,8 @@ public class ListActivity extends AppCompatActivity {
     Toast.makeText(this, "Bienvenido/a, " + usuario.getNombre(), Toast.LENGTH_LONG).show();
 
     FlixNetDB fndb = FlixNetDB.getInstance("flixnet",this );
+
+    fndb.setData(FirebaseDatabase.getInstance().getReference("listas"));
 
 
   }

@@ -4,13 +4,23 @@ import android.content.Context;
 import android.database.DatabaseErrorHandler;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
+
+import com.example.flixnet.flixnet.Modelos.Lista;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.function.BiConsumer;
 
 public class FlixNetDB extends SQLiteOpenHelper {
 
@@ -118,6 +128,59 @@ public class FlixNetDB extends SQLiteOpenHelper {
   @Override
   public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
     Log.i("FLIXNETDB", "Actualizando....") ;
+  }
+
+
+  /**
+   * Función para poblar un tabla con los datos obtenidos desde Firebase
+   * @param tabla
+   * @param ref
+   */
+  public void setData(DatabaseReference ref){
+    ref.orderByKey().addChildEventListener(new ChildEventListener() {
+      @Override
+      public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+        Lista lista = dataSnapshot.getValue(Lista.class);
+        String query = "INSERT OR REPLACE INTO lista (idUsuario, idLista, nombre) VALUES (\"";
+        query += dataSnapshot.getKey() + "\", \"";
+        query += lista.getIdLista() + "\", \"";
+        query += lista.getNombre() + "\")";
+
+        database.execSQL(query);
+
+        Map<String, String> pelis = lista.getPeliculas();
+
+        for (Iterator it = pelis.keySet().iterator(); it.hasNext();){
+          query = "INSERT OR REPLACE INTO lista_pelicula (idLista, idPelicula) VALUES (\"";
+          query += lista.getIdLista() + "\", \"";
+          query += it.next() + "\")";
+          Log.d("QUERY:", query);
+          database.execSQL(query);
+        }
+
+      }
+
+      @Override
+      public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+      }
+
+      @Override
+      public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+      }
+
+      @Override
+      public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+      }
+
+      @Override
+      public void onCancelled(@NonNull DatabaseError databaseError) {
+
+      }
+    });
+
   }
 
 }

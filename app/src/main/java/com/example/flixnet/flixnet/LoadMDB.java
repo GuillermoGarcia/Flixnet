@@ -7,6 +7,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.firebase.database.DatabaseReference;
@@ -16,6 +17,9 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+
+import org.json.JSONArray;
+import org.json.JSONException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,21 +37,46 @@ public class LoadMDB {
     String ruta = "https://api.themoviedb.org/3/movie/now_playing?api_key=5f775a993e0d9b14b2d0424b78e5cfc4&language=es-ES&page=1";
 
     // Preparamos la solicitud que se enviará
+
+    /*JsonArrayRequest jsonArray = new JsonArrayRequest(
+        Request.Method.GET,
+        ruta,
+        null,
+        new Response.Listener<JSONArray>() {
+          @Override
+          public void onResponse(JSONArray response) {
+            Map<String, String> data = new HashMap<String, String>();
+            try {
+              for (int i = 0; i < response.length(); i++) {
+                data.clear();
+                JsonObject item = response.getJSONObject(i);
+                //Log.i("TITULO", getItem(item,"title"));
+                data.put("estreno", getItem(item, "release_date"));
+                data.put("nota", getItem(item, "vote_average"));
+                data.put("poster", getItem(item, "poster_path"));
+                data.put("sinopsis", getItem(item, "overview"));
+                data.put("titulo", getItem(item, "title"));
+                saveOnFirebase(item.get("id").toString(), data);
+              }
+            } catch (JSONException e) {
+              e.printStackTrace();
+            }
+          }
+        },
+        new Response.ErrorListener() {
+          @Override
+          public void onErrorResponse(VolleyError error) {
+
+          }
+        }
+    );*/
+
     StringRequest jsonreq = new StringRequest(
             Request.Method.GET,
             ruta,
             new Response.Listener<String>() {
               @Override
               public void onResponse(String response) {
-
-                // Creamos un objeto de tipo GsonBuilder
-                GsonBuilder builder = new GsonBuilder();
-
-                // A partir del constructor anterior, instanciamos un objeto de
-                // tipo Gson. Éste será el encargado de parsear la cadena y
-                // deserializarla, permitiéndonos obtener el objeto correspon-
-                // diente.
-                Gson gson = builder.create();
 
                 // Ya que no vamos a usar una clase, hay que parsear el json recibido en
                 // un Array del que obtendremos los datos, para ello tenemos que pasar a
@@ -65,6 +94,7 @@ public class LoadMDB {
                   data.clear();
                   JsonObject item = (JsonObject) jsonar.get(i);
                   //Log.i("TITULO", getItem(item,"title"));
+                  data.put("duracion",getItem(item,"duration"));
                   data.put("estreno", getItem(item, "release_date"));
                   data.put("nota", getItem(item, "vote_average"));
                   data.put("poster", getItem(item, "poster_path"));
