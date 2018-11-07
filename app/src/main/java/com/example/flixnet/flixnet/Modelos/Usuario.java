@@ -38,6 +38,8 @@ public class Usuario implements Serializable {
         return email;
     }
 
+    public String getIdUsuario() { return idUsuario; }
+
     public String getImagen() {
         return imagen;
     }
@@ -61,6 +63,8 @@ public class Usuario implements Serializable {
     public void setEmail(String email) {
         this.email = email;
     }
+
+    public void setIdUsuario(String idUsuario) { this.idUsuario = idUsuario; }
 
     public void setImagen(String imagen) {
         this.imagen = imagen;

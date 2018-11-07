@@ -1,4 +1,4 @@
-package com.example.flixnet.flixnet;
+package com.example.flixnet.flixnet.Actividades;
 
 import android.content.Intent;
 import android.support.annotation.NonNull;
@@ -11,7 +11,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -20,6 +19,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.flixnet.flixnet.Modelos.Respuesta;
 import com.example.flixnet.flixnet.Modelos.Usuario;
+import com.example.flixnet.flixnet.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -32,7 +32,6 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -86,10 +85,10 @@ public class LoginActivity extends AppCompatActivity {
           Snackbar.make(v, R.string.login_vacio_login, Snackbar.LENGTH_LONG).show();
         } else {
           // Login contra Servidor RESTful
-          LoginApi(v, usr, pas, API_KEY);
+          //LoginApi(v, usr, pas, API_KEY);
 
           // Login contra Firebase
-          LoginFirebase(usr, pas);
+          LoginFirebase(usr, pas, v);
 
         }
 
@@ -191,7 +190,7 @@ public class LoginActivity extends AppCompatActivity {
 
   }
 
-  private void LoginFirebase(String ema, String pas){
+  private void LoginFirebase(String ema, String pas, final View v){
 
     // Logueamos utilizando Firebase
 
@@ -214,7 +213,8 @@ public class LoginActivity extends AppCompatActivity {
                  FirebaseDatabase db = FirebaseDatabase.getInstance();
 
                  // Creamos una referencia al documento USUARIOS
-                 DatabaseReference ref = db.getReference("usuario");
+                 DatabaseReference ref = db.getReference("usuarios");
+
                  // Obtenemos la información del usuario
                  ref.child(mAuth.getCurrentUser().getUid())
                      .addListenerForSingleValueEvent(new ValueEventListener() {
@@ -224,6 +224,7 @@ public class LoginActivity extends AppCompatActivity {
 
                            // Rescatamos la información devuelta por Firebase
                            Usuario usuario = dataSnapshot.getValue(Usuario.class);
+                           usuario.setIdUsuario(mAuth.getCurrentUser().getUid());
 
                            // Creamos la intención
                            Intent intent = new Intent(LoginActivity.this, ListActivity.class);
@@ -245,7 +246,9 @@ public class LoginActivity extends AppCompatActivity {
                        public void onCancelled(@NonNull DatabaseError databaseError) {
 
                        }
-                 });
+                     });
+               } else {
+                 Snackbar.make(v, R.string.login_error_login, Snackbar.LENGTH_LONG).show();
                }
              }
       });

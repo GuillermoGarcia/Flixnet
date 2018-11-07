@@ -1,186 +1,391 @@
 package com.example.flixnet.flixnet;
 
+import android.content.ContentValues;
 import android.content.Context;
-import android.database.DatabaseErrorHandler;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.example.flixnet.flixnet.Modelos.Lista;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.function.BiConsumer;
+import java.util.List;
 
+import com.example.flixnet.flixnet.Modelos.Lista;
+/**
+ * Programación multimedia y dispositivos móviles
+ * @author Antonio J.Sánchez
+ * @year 2018/19
+ *
+ */
 public class FlixNetDB extends SQLiteOpenHelper {
 
-  //
-  private static int dbVersion = 1 ;
+    // Instancia del objeto y contexto
+    private static FlixNetDB instance = null ;
+    private static SQLiteDatabase database;
+    private static String uid ;
 
-  // Instancia del objeto y contexto
-  private static FlixNetDB instance = null ;
-  private static SQLiteDatabase database;
-  private Context dbContext ;
-
-  //
-  private String dbName ;
-
-  private FlixNetDB(@Nullable Context context, @Nullable String name,
-                    @Nullable SQLiteDatabase.CursorFactory factory, int version) {
-    super(context, name, factory, version);
-
-    // Guardamos el contexto
-    dbName    = name ;
-    dbContext = context ;
-  }
-
-  /**
-   * Utilizamos el patrón de diseño Singleton para crear una única
-   * instancia del objeto FlixNetDB, teniendo también de esta manera
-   * un único punto de entrada a la base de datos.
-   *
-   * @param dbName
-   * @param context
-   * @return
-   */
-  public static synchronized FlixNetDB getInstance(String dbName, Context context) {
-
-    // Si aún no hemos creado la instancia, lo hacemos y llamamos al
-    // constructor con los datos apropiados.
-    if (instance==null)
-      instance = new FlixNetDB(context, dbName, null, dbVersion) ;
-
-    // Creamos la base de datos
-    database = instance.getWritableDatabase() ;
-
-    // Devolvemos la instancia de la base de datos
-    return instance ;
-  }
-
-  /**
-   * Se lanzará cuando se cree el objeto FlixNetDB. Hemos de tener en cuenta
-   * que este método se lanzará automáticamente si la base de datos no existe.
-   * Sin embargo, si la base de datos ya existe y las versiones coinciden, se
-   * establecerá únicamente una conexión.
-   *
-   * @param sqliteDB
-   */
-  @Override
-  public void onCreate(SQLiteDatabase sqliteDB) {
-
-    // Si la base de datos no existe, creamos aquellos elementos que
-    // necesitaremos para nuestra aplicación y obtenemos información
-    // de la API de The Movie DB.
     //
-    // Firebase: almacenará películas, géneros, comentarios, listas
-    // y cines. Esto es, básicamente toda la información de nuestra
-    // aplicación.
+    private Context dbContext ;
+    private List<Lista> listas = null ;
+
     //
-    // Localmente: en nuestro dispositivo guardaremos nuestras listas
-    // e información temporal de las películas contenidas en las
-    // mismas.
+    private FirebaseDatabase fbdb ;
 
-    // creamos base de datos local utilizando las instrucciones alma-
-    // cenadas en el archivo correspondiente.
-    try {
+    /**
+     * @param context
+     * @param name
+     * @param factory
+     * @param version
+     */
+    private FlixNetDB(@Nullable Context context, @Nullable String name,
+                      @Nullable SQLiteDatabase.CursorFactory factory, int version) {
+        super(context, name, factory, version);
 
-      InputStream is = dbContext.getResources().openRawResource(R.raw.flixnet_local);
-
-      // Creamos un buffer de lectura
-      BufferedReader buf = new BufferedReader(new InputStreamReader(is));
-
-      // Leemos el contenido y lanzamos las instrucciones
-      String line = buf.readLine();
-
-      while (line != null) {
-        sqliteDB.execSQL(line) ;
-        line = buf.readLine();
-      }
-
-      // Cerramos el buffer de lectura
-      buf.close();
-
-      // Cerramos el recurso
-      is.close();
-
-    } catch (IOException e) {
-      e.printStackTrace();
+        dbContext = context ; // Guardamos el contexto
     }
-  }
 
-  /**
-   * Se lanzará automáticamente si la base de datos existe y las versiones
-   * no coinciden.
-   * @param sqLiteDatabase
-   * @param i
-   * @param i1
-   */
-  @Override
-  public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
-    Log.i("FLIXNETDB", "Actualizando....") ;
-  }
+    /**
+     * Utilizamos el patrón de diseño Singleton para crear una única instancia del
+     * objeto FlixNetDB, teniendo también de esta manera un único punto de entrada
+     * a la base de datos. NOTA: hacemos que el método seá además synchronized
+     * para evitar que puedan crearse diferentes instancias al mismo tiempo.
+     *
+     * @param context
+     * @param userID
+     * @return
+     */
+    public static synchronized FlixNetDB getInstance(Context context, String userID) {
+
+        // Si aún no hemos creado la instancia, lo hacemos y llamamos al
+        // constructor con los datos apropiados.
+        if (instance==null)
+            instance = new FlixNetDB(context, "flixnet", null, 2) ;
+
+        // Guardamos la información sobre el identificador de usuario
+        uid = userID ;
+
+        // Creamos la base de datos
+        database = instance.getWritableDatabase() ;
+
+        // Devolvemos la instancia de la base de datos
+        return instance ;
+    }
+
+    /**
+     * Se lanzará cuando se cree el objeto FlixNetDB. Hemos de tener en cuenta
+     * que este método se lanzará automáticamente si la base de datos no existe.
+     * Sin embargo, si la base de datos ya existe y las versiones coinciden, se
+     * establecerá únicamente una conexión.
+     *
+     * @param sqliteDB
+     */
+    @Override
+    public void onCreate(SQLiteDatabase sqliteDB) {
+
+        crearDB(sqliteDB) ;     // Creamos la base de datos
+        poblarDB(sqliteDB) ;    // Poblamos la base de datos
 
 
-  /**
-   * Función para poblar un tabla con los datos obtenidos desde Firebase
-   * @param tabla
-   * @param ref
-   */
-  public void setData(DatabaseReference ref){
-    ref.orderByKey().addChildEventListener(new ChildEventListener() {
-      @Override
-      public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-        Lista lista = dataSnapshot.getValue(Lista.class);
-        String query = "INSERT OR REPLACE INTO lista (idUsuario, idLista, nombre) VALUES (\"";
-        query += dataSnapshot.getKey() + "\", \"";
-        query += lista.getIdLista() + "\", \"";
-        query += lista.getNombre() + "\")";
+    }
 
-        database.execSQL(query);
+    /**
+     * Se lanzará automáticamente si la base de datos existe y las versiones
+     * no coinciden.
+     * @param sqLiteDatabase
+     * @param i
+     * @param i1
+     */
+    @Override
+    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
 
-        Map<String, String> pelis = lista.getPeliculas();
+        // Destruimos las tablas y recreamos la base de datos.
+        sqLiteDatabase.execSQL("DROP TABLE lista_pelicula ;");
+        sqLiteDatabase.execSQL("DROP TABLE pelicula ;");
+        sqLiteDatabase.execSQL("DROP TABLE lista ;");
 
-        for (Iterator it = pelis.keySet().iterator(); it.hasNext();){
-          query = "INSERT OR REPLACE INTO lista_pelicula (idLista, idPelicula) VALUES (\"";
-          query += lista.getIdLista() + "\", \"";
-          query += it.next() + "\")";
-          Log.d("QUERY:", query);
-          database.execSQL(query);
+        // Recreamos la base de datos
+        onCreate(sqLiteDatabase) ;
+    }
+
+    /**
+     * Crea la base de datos local, a partir del script SQL que hemos añadido como
+     * recurso a nuestro proyecto.
+     * @param db
+     */
+    private void crearDB(SQLiteDatabase db) {
+
+        try {
+
+            InputStream is = dbContext.getResources().openRawResource(R.raw.flixnet_local);
+
+            // Creamos un buffer de lectura
+            BufferedReader buf = new BufferedReader(new InputStreamReader(is));
+
+            // Leemos el contenido y lanzamos las instrucciones
+            String line = buf.readLine();
+
+            while (line != null) {
+                db.execSQL(line) ;
+                line = buf.readLine();
+            }
+
+            // Cerramos el buffer de lectura
+            buf.close();
+
+            // Cerramos el recurso
+            is.close();
+
+        } catch (IOException e) {
+            Log.e("FLIXNETDB", "** Se ha producido un error en la creación de la base de datos.") ;
+            e.printStackTrace();
         }
+    }
 
-      }
+    /**
+     * Firebase: almacenará películas, géneros, comentarios, listas y cines. Esto es,
+     * básicamente toda la información de nuestra aplicación. Si la base de datos no
+     * existe, obtenemos los datos la API de TMDB y generamos los documentos necesa-
+     * rios.
+     *
+     * Localmente: guardaremos en el dispositivo nuestras listas e información tempo-
+     * ral de las películas contenidas en las mismas.
+     *
+     * @param db
+     */
+    private void poblarDB(final SQLiteDatabase db) {
 
-      @Override
-      public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+        // Obtenemos una instancia de la base de datos de Firebase Realtime Database
+        fbdb = FirebaseDatabase.getInstance() ;
 
-      }
+        // Obtener una referencia a las listas del usuario logueado
+        fbdb.getReference("usuarios/" + uid + "/listas")
+            .addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot ds) {
 
-      @Override
-      public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+                    // Recorrer el resultado obteniendo los id de cada lista
+                    for(DataSnapshot item : ds.getChildren()) {
+                        addLista(item.getValue().toString(), db) ;// Localizar y obtener información sobre la lista
+                    }
+                }
 
-      }
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Log.e("FLIXNET:DB", "Se ha producido un error en la comunicación con la base de datos [" + databaseError.getCode() + "]") ;
+                }
+            });
 
-      @Override
-      public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+    }
 
-      }
+    private void addLista(final String idLista, final SQLiteDatabase db) {
 
-      @Override
-      public void onCancelled(@NonNull DatabaseError databaseError) {
+        fbdb.getReference("listas/" + idLista)
+            .addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot ds) {
 
-      }
-    });
+                    // Guardar en la tabla LISTA
+                    ContentValues values = new ContentValues() ;
+                    values.put("idLista",   idLista);
+                    values.put("idUsuario", uid);
+                    values.put("nombre",    ds.child("nombre").getValue().toString()) ;
+                    Log.i("QueryContentValue", values.toString());
 
-  }
+                    db.insertOrThrow("lista", null, values);
+
+                    // Obtenemos las películas
+                    DataSnapshot films = ds.child("peliculas") ;
+
+                    // Iteramos sobre las películas y obtenemos información
+                    for (DataSnapshot item : films.getChildren()) {
+
+                        String idPelicula = item.getValue().toString() ;
+
+                        // Obtener información y guardar la película en
+                        // la tabla PELICULA
+                        addPelicula(idPelicula, db) ;
+
+                        // Relacionar la película con la lista en la tabla
+                        // LISTA_PELICULA
+                        values.clear() ;
+                        values.put("idLista",    idLista) ;
+                        values.put("idPelicula", idPelicula) ;
+                        db.insertOrThrow("lista_pelicula", null, values) ;
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Log.e("FLIXNET:DB", "Se ha producido un error en la comunicación con la base de datos [" + databaseError.getCode() + "]") ;
+                }
+            });
+    }
+
+    private void addPelicula(final String idPelicula, final SQLiteDatabase db) {
+
+        fbdb.getReference("peliculas/" + idPelicula)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot ds) {
+
+                      ContentValues values = new ContentValues();
+                      try {
+                        // Guardar en la tabla PELICULA
+                        values.put("idMDB", idPelicula);
+                        values.put("titulo", ds.child("titulo").getValue().toString());
+                        values.put("poster", ds.child("poster").getValue().toString());
+                        values.put("estreno", ds.child("estreno").getValue().toString());
+                        values.put("sinopsis", ds.child("sinopsis").getValue().toString());
+                        values.put("nota", ds.child("nota").getValue().toString());
+                      } catch (NullPointerException e) {
+                        e.printStackTrace();
+                      }
+                        try {
+                            db.insertOrThrow("pelicula", null, values);
+                        } catch (SQLiteException e) {
+                            //
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        Log.e("FLIXNET:DB", "Se ha producido un error en la comunicación con la base de datos [" + databaseError.getCode() + "]") ;
+                    }
+                });
+
+    }
+
+    /*private void poblarDB(SQLiteDatabase db) {
+
+        // FLUJO A SEGUIR
+        // Obtenemos información de FIREBASE
+        // NO HAY ---- poblamos FIREBASE
+        // HAY ------- poblamos LOCAL
+
+        Log.i("FLIXNETDB", "Poblando....") ;
+
+        // Obtenemos una instancia de la base de datos de Firebase Realtime Database
+        //FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+        fbdb = FirebaseDatabase.getInstance() ;
+
+        //
+
+
+        // Obtenemos referencia al usuario
+        fbdb.getReference("usuarios/" + uid + "/listas")
+            .addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                    // Recorremos los resultados y obtenemos los identificadores de las listas
+                    for(DataSnapshot item : dataSnapshot.getChildren())
+                        addLista(item.getValue().toString(), uid) ;
+
+                    // Hacemos una parada para comprobar el contenido de la lista
+                    Log.i("FLIXNETDB", "Esperando contenido...") ;
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Log.e("FLIXNET:DB", "Se ha producido un error en la comunicación con la base de datos [" + databaseError.getCode() + "]") ;
+                }
+            });
+
+    }
+
+    private void addLista(final String idLista, final String idUsuario) {
+
+        // Creamos la lista
+        final Lista lst = new Lista(Integer.valueOf(idLista)) ;
+
+        fbdb.getReference("listas/" + idLista)
+            .addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                    // Guardamos la lista en la base de datos
+                    ContentValues lista = new ContentValues() ;
+                    lista.put("idLista",   idLista) ;
+                    lista.put("idUsuario", idUsuario) ;
+                    lista.put("nombre",    dataSnapshot.child("nombre").getValue().toString()) ;
+
+                    database.insertOrThrow("lista", null, lista) ;
+
+
+                    // Por cada película, buscamos información y la añadimos
+                    for (DataSnapshot item : dataSnapshot.child("peliculas").getChildren()) {
+
+                        String idPelicula = item.getValue().toString() ;
+
+                        // Añadimos la película
+                        addPelicula(idPelicula) ;
+
+                        // Añadimos la relación en la base de datos
+                        ContentValues lista_pelicula = new ContentValues() ;
+                        lista_pelicula.put("idLista", idLista) ;
+                        lista_pelicula.put("idPelicula", idPelicula) ;
+
+                        database.insertOrThrow("lista_pelicula", null, lista_pelicula) ;
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Log.e("FLIXNET:DB", "Se ha producido un error en la comunicación con la base de datos [" + databaseError.getCode() + "]") ;
+                }
+            });
+
+    }
+
+    private void addPelicula(final String idFilm) {
+
+        // Buscamos en la base de datos información sobre la película
+        fbdb.getReference("peliculas/" + idFilm)
+            .addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dta) {
+
+                    ContentValues pelicula = new ContentValues() ;
+                    pelicula.put("idMDB",    idFilm) ;
+                    pelicula.put("titulo",   dta.child("titulo").getValue().toString()) ;
+                    pelicula.put("poster",   dta.child("poster").getValue().toString()) ;
+                    pelicula.put("sinopsis", dta.child("sinopsis").getValue().toString()) ;
+                    pelicula.put("estreno",  dta.child("estreno").getValue().toString()) ;
+                    pelicula.put("nota",     dta.child("nota").getValue().toString()) ;
+
+                    try {
+                        database.insertOrThrow("pelicula",null, pelicula) ;
+                    } catch(SQLiteException e) {
+                        e.printStackTrace() ;
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Log.e("FLIXNET:DB", "Se ha producido un error en la comunicación con la base de datos [" + databaseError.getCode() + "]") ;
+                }
+            }) ;
+
+    }
+
+    public String getPelicula() {
+
+        Cursor c = database.rawQuery("SELECT * FROM pelicula ;", null) ;
+        c.moveToFirst() ;
+        return c.getString(1) ;
+    }*/
+
+
 
 }
