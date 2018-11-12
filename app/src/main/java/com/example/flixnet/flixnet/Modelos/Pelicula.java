@@ -51,7 +51,7 @@ public class Pelicula {
    * Devuelve la Nota de la película
    * @return nota
    */
-  public String getNota() { return nota; }
+  public float getNota() { return (float) (0.5 * Double.valueOf(nota)); }
 
   /**
    * Devuelve el nombre del poster/imagen de la película
@@ -101,4 +101,6 @@ public class Pelicula {
    */
   public void setTitulo(String titulo) { this.titulo = titulo; }
 
+  @Override
+  public String toString() { return "Título: " + this.titulo + " - Nota: " + this.nota; }
 }

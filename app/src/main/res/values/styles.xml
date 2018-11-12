@@ -8,4 +8,10 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <!--
+        Creamos un estilo pesonalizado para nuestra barra de rating, de manera que
+        aparezca más pequeña que si utilizamos su configuración normal
+     -->
+    <style name="myOwnRatingBar" parent="Widget.AppCompat.RatingBar.Small" />
+
 </resources>
