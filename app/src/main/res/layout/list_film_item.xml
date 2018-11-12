@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Añadimos al CardView las propiedades:
+    - clickable
+      determinará que el usuario podrá hacer click sobre el ítem
+    - foreground
+      le añadimos un estilo que muestra un efecto ripple cuando hacemos click
+    - cardElevation
+      simula la elevación del cardView sobre el fondo, añadiendo una sombra
+    - cardCornerRadius
+      redondea las esquinas de la cardView
+    - cardUseCompatPadding
+      permite añadir un padding al interior del cardView
+-->
+<android.support.v7.widget.CardView
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="wrap_content"
+  android:layout_height="wrap_content"
+  android:clickable="true"
+  android:foreground="?android:attr/selectableItemBackground"
+
+  xmlns:card_view="http://schemas.android.com/apk/res-auto"
+  card_view:cardElevation="8dp"
+  card_view:cardCornerRadius="2dp"
+  card_view:cardUseCompatPadding="true">
+
+  <LinearLayout
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="260dp"
+    android:layout_margin="10dp">
+
+    <ImageView
+      android:id="@+id/filmPoster"
+      android:layout_width="140dp"
+      android:layout_height="200dp"
+      android:layout_marginTop="8dp"
+      android:layout_gravity="center_horizontal"
+      android:background="#aaa" />
+
+    <TextView
+      android:id="@+id/filmTitle"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:gravity="center_horizontal"
+      android:maxLines="1"
+      android:ellipsize="end"
+      android:layout_marginTop="5dp"
+      android:text="título película"/>
+
+    <!--
+          Añadimos al RatingBar las propiedades:
+          - numStarts
+            determina el número de estrellas que mostrará el control
+          - isIndicator
+            determina si el control es meramente informativo, o permite al usuario puntuar
+          - style
+            nos permite asignar un estilo propio al control. En este caso, hemos determinado
+            que se nos muestre el elemento en un tamaño más reducido al habitual.
+    -->
+    <RatingBar
+      android:id="@+id/filmRating"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="5dp"
+      android:layout_gravity="center_horizontal"
+      android:isIndicator="true"
+      android:numStars="5"
+      style="@style/myOwnRatingBar" />
+
+  </LinearLayout>
+
+</android.support.v7.widget.CardView>
+
+
+
